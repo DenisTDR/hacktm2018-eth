@@ -81,6 +81,21 @@ export default class EthController {
 
             const address = await personal.newAccount(password);
 
+            if (process.env.MAIN_ACCOUNT_PASSWORD) {
+                await personal.unlockAccount(process.env.MAIN_ACCOUNT, process.env.MAIN_ACCOUNT_PASSWORD);
+            }
+
+            const web3 = Web3Factory.getWeb3();
+            let tx2 = await web3.eth.sendTransaction({
+                from: process.env.MAIN_ACCOUNT,
+                to: address,
+                value: (new BigNumber(10).pow(18)).toString(),
+                gas: 500 * 1000
+            });
+            if (process.env.MAIN_ACCOUNT_PASSWORD) {
+                await personal.lockAccount(process.env.MAIN_ACCOUNT);
+            }
+
             await personal.unlockAccount(address, password);
             await personal.lockAccount(address);
 

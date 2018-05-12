@@ -4,7 +4,7 @@ export default class Web3Factory {
     private static provider: any = null;
 
     public static getProvider() {
-        console.log("Web3Factory.getProvider");
+        // console.log("Web3Factory.getProvider");
         if (Web3Factory.provider === null) {
             Web3Factory.provider = new Web3.providers.HttpProvider(process.env.NODE_URL);
         }

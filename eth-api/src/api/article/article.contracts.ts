@@ -34,18 +34,26 @@ export default class ArticleController {
             ethAddress: ""
         };
 
-
         const contract = await ContractsProvider.getContractArtifacts("article");
         const web3 = Web3Factory.getWeb3();
         const accounts = web3.eth.accounts;
-        const contractInstance = await contract.new(model.hash, {from: accounts[0], gas: 500 * 1000});
 
-        model.ethAddress = contractInstance.address;
+        try {
+            const contractInstance = await contract.new(model.hash, {from: process.env.MAIN_ACCOUNT, gas: 500 * 1000});
 
-        res.send({
-            message: 'Created!',
-            model: model
-        });
+            model.ethAddress = contractInstance.address;
+
+            res.send({
+                message: 'Created!',
+                model: model
+            });
+        }catch (exc) {
+
+            res.status(500).send({
+                message: 'error',
+                model: exc.message
+            });
+        }
     }
 
     public static async vote(req: Request, res: Response, next: NextFunction) {
