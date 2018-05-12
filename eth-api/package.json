@@ -1,0 +1,52 @@
+{
+    "name": "hacktm2018-eth-api",
+    "version": "1.0.0",
+    "description": "A starter for Node JS, Express, Typescript, Mongoose aplication",
+    "main": "server.js",
+    "scripts": {
+        "dev": "concurrently --kill-others \"npm run watch-ts\"",
+        "serve": "npm run build-ts & npm run start",
+        "build-ts": "tsc -p src",
+        "watch-ts": "tsc-watch -w -p src --onSuccess \"npm run start-dev\"",
+        "start": "node dist/server.js",
+        "start-dev": "nodemon dist/server.js",
+        "start-dev-2": "ts-node-dev --respawn --type-check src\\server.ts"
+    },
+    "keywords": [
+        "Node",
+        "JS",
+        "Express",
+        "Mongo",
+        "Mongoose",
+        "Typescript"
+    ],
+    "author": "Matheus Davidson - MTDA",
+    "license": "ISC",
+    "dependencies": {
+        "body-parser": "^1.18.2",
+        "cookie-parser": "^1.4.3",
+        "cors": "^2.8.4",
+        "dotenv": "^4.0.0",
+        "ejs": "^2.6.1",
+        "express": "^4.16.3",
+        "express-validator": "^5.2.0",
+        "moment": "^2.22.1",
+        "mongoose": "^5.0.10",
+        "morgan": "^1.9.0",
+        "truffle-contract": "^3.0.4",
+        "path": "^0.12.7"
+    },
+    "devDependencies": {
+        "@types/express": "^4.11.1",
+        "@types/lodash": "^4.14.108",
+        "@types/mongoose": "^4.7.36",
+        "@types/node": "^8.10.14",
+        "concurrently": "^3.5.1",
+        "glob": "^7.1.2",
+        "lodash": "^4.17.10",
+        "nodemon": "^1.17.4",
+        "ts-node-dev": "^1.0.0-pre.21",
+        "tsc-watch": "^1.0.21",
+        "typescript": "^2.8.3"
+    }
+}

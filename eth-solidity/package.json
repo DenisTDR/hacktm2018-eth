@@ -1,0 +1,14 @@
+{
+  "name": "hacktm2018-eth-solidity",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "re-deploy": "rm -rf build && truffle deploy"
+  },
+  "author": "",
+  "license": "ISC"
+}
