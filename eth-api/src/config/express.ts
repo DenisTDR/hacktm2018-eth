@@ -26,10 +26,6 @@ class Express {
         this.setEnv();
 
         // 
-        // Mongo
-        this.connectToMongo();
-
-        // 
         // Start App
         this.app = express();
 
@@ -71,32 +67,6 @@ class Express {
         dotenv.config({path: this.envFile});
     }
 
-    /**
-     * Connect to mongo
-     */
-    private connectToMongo() {
-
-        const options = {};
-
-        // Connect to mongo using mongoose
-
-        const mongoUri = process.env.MONGO_URI;
-
-        if (typeof mongoUri === 'undefined' || !mongoUri) {
-            console.error("invalid MONGO_URI");
-            process.exit(-1);
-        }
-
-        mongoose.connect(process.env.MONGO_URI, options, (err => {
-            if (err) {
-                console.error("can't connect to mongo");
-                console.error(err);
-                process.exit(-1);
-                return;
-            }
-            console.log("connected to MongoDB");
-        }));
-    }
 
     /**
      * Set view engine

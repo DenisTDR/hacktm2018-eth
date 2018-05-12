@@ -1,6 +1,4 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import ExampleRouter from '../api/example/example.router';
-import ThingController from '../api/thing/thing.controller';
 import EthController from "../api/eth/eth.controller";
 import ArticleController from "../api/article/article.contracts";
 
@@ -43,8 +41,6 @@ export default class Routes {
 
         // 
         // Your routes goes here
-        this.app.use('/api/examples', ExampleRouter);
-        this.app.use('/api/things', new ThingController().initAndGetRouter());
         this.app.use('/eth/eth', new EthController().initAndGetRouter());
         this.app.use('/eth/article', new ArticleController().initAndGetRouter());
 

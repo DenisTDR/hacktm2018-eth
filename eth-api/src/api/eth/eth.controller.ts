@@ -1,6 +1,8 @@
 import {Request, Response, NextFunction, Router} from 'express';
 import {CallModifierFunctionRequestModel} from "../../models/call-modifier-function-request-model";
 import ContractsProvider from "../../providers/contracts.provider";
+import Web3Factory from "../../config/web3.factory";
+import {CallViewFunctionRequestModel} from "../../models/call-view-function-request-model";
 
 const BigNumber = require('bignumber.js');
 
@@ -12,12 +14,13 @@ export default class EthController {
     public initAndGetRouter(): Router {
         console.log("initialized EthController");
         this.router = Router();
-        this.router.post('/new', EthController.new);
+        this.router.post('/createAccount', EthController.createAccount);
         this.router.post('/modifierFunction', EthController.callModifierFunction);
         // this.router.post('/', Auth.isAuthenticated, ThingController.create);
 
         return this.router;
     }
+
     static async callModifierFunction(req: Request, res: Response, next: NextFunction) {
         const requestObject: CallModifierFunctionRequestModel = req.body;
 
@@ -55,28 +58,42 @@ export default class EthController {
     }
 
 
-    /**
-     * Create
-     * @param {*} req
-     * @param {*} res
-     * @param {*} next
-     */
-    public static async new(req: Request, res: Response, next: NextFunction) {
-
-        console.log(req.body);
-
-        const model = {
-            hash: req.body.hash
-        };
-
-
-        const contract = await ContractsProvider.getContractArtifacts("article");
-
-
-
+    static async callViewFunction(req: Request, res: Response, next: NextFunction) {
+        const requestObject: CallViewFunctionRequestModel = req.body;
+        const contract = await ContractsProvider.getContractArtifacts(requestObject.contractName.toLowerCase()).at(requestObject.address);
+        let result = await contract[requestObject.methodName].call(...requestObject.params);
+        if (result && result.constructor.name === 'BigNumber') {
+            result = new BigNumber(result.toString(10))
+                .div(new BigNumber(10).pow(18)).toNumber(10).toLocaleString();
+        }
         res.send({
-            message: 'Created!',
-            model: model
+            result: result
         });
     }
+
+    static async createAccount(req: Request, res: Response, next: NextFunction) {
+
+        try {
+            const password = req.body.password || undefined;
+
+            const personal = Web3Factory.getPersonal();
+
+            const address = await personal.newAccount(password);
+
+            await personal.unlockAccount(address, password);
+            await personal.lockAccount(address);
+
+            res.send({
+                status: "success",
+                address: address,
+                password: typeof password !== "undefined"
+            });
+        } catch (exc) {
+
+            res.status(500).send({
+                status: "error"
+            });
+        }
+    }
+
 }

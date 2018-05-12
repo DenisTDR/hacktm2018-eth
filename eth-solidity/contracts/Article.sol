@@ -26,7 +26,7 @@ contract Article {
             up = up + 1;
         }
         else {
-            up = up - 1;
+            down = down + 1;
         }
         voteOf[voter] = _vote;
         didVote[voter] = true;

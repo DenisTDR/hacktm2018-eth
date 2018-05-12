@@ -96,14 +96,17 @@ export default class ContractsProvider {
 
     private static getContractArtifactsFromPath(csJsonArtifactsPath: string): any {
         if (!fs.existsSync(csJsonArtifactsPath)) {
-            throw new Error("Didn't found contract json artifacts");
+            console.log(csJsonArtifactsPath);
+            throw new Error("Didn't found contract json artifacts at: ");
         }
         const csJsonArtifacts = require(csJsonArtifactsPath);
 
         const Contract = contract({
             abi: csJsonArtifacts.abi,
-            networks: csJsonArtifacts.networks
+            networks: csJsonArtifacts.networks,
+            bytecode: csJsonArtifacts.bytecode
         });
+        // console.log("bytecode length: " + Contract.bytecode.length);
 
         const provider = Web3Factory.getProvider();
         Contract.setProvider(provider);
