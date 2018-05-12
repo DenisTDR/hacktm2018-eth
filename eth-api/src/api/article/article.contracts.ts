@@ -187,8 +187,14 @@ export default class ArticleController {
         const result = [];
         for (let articleAddress of articleAddresses) {
             try {
-                const contractInstance = await contract.at(articleAddress);
-
+                let contractInstance;
+                try {
+                    console.log("loading article contract: " + articleAddress);
+                    contractInstance = await contract.at(articleAddress)
+                } catch (e) {
+                    console.error("error: " + e.message + " ->" + articleAddress);
+                    continue;
+                }
                 const userDidVote = await contractInstance.didVote.call(model.userAddress);
 
                 if (!userDidVote) {
