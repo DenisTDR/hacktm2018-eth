@@ -10,12 +10,12 @@ contract UserProfile is Ownable {
 
     mapping(address => bool) public usedArticles;
 
-    function UserProfile(address _userAddress){
+    constructor(address _userAddress) public{
         userAddress = _userAddress;
         reputation = 1;
     }
 
-    function setArticleAsUsed(address articleAddress) onlyOwner {
+    function setArticleAsUsed(address articleAddress) public onlyOwner {
         if (usedArticles[articleAddress]) {
             revert();
         }
