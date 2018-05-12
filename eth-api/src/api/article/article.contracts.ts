@@ -39,6 +39,11 @@ export default class ArticleController {
         const accounts = web3.eth.accounts;
 
         try {
+            if (process.env.MAIN_ACCOUNT_PASSWORD) {
+
+                const personal = Web3Factory.getPersonal();
+                await personal.unlockAccount(process.env.MAIN_ACCOUNT, process.env.MAIN_ACCOUNT_PASSWORD);
+            }
             const contractInstance = await contract.new(model.hash, {from: process.env.MAIN_ACCOUNT, gas: 500 * 1000});
 
             model.ethAddress = contractInstance.address;
