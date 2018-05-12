@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import EthController from "../api/eth/eth.controller";
-import ArticleController from "../api/article/article.contracts";
+import ArticleController from "../api/article/article.controller";
+import UserController from "../api/user/user.controller";
 
 export default class Routes {
 
@@ -43,6 +44,7 @@ export default class Routes {
         // Your routes goes here
         this.app.use('/eth/eth', new EthController().initAndGetRouter());
         this.app.use('/eth/article', new ArticleController().initAndGetRouter());
+        this.app.use('/eth/user', new UserController().initAndGetRouter());
 
 
         /*--------  Main routes  --------*/

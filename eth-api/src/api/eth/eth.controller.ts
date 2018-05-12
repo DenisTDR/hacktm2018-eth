@@ -3,6 +3,7 @@ import {CallModifierFunctionRequestModel} from "../../models/call-modifier-funct
 import ContractsProvider from "../../providers/contracts.provider";
 import Web3Factory from "../../config/web3.factory";
 import {CallViewFunctionRequestModel} from "../../models/call-view-function-request-model";
+import UserProvider from "../../providers/user.provider";
 
 const BigNumber = require('bignumber.js');
 
@@ -92,6 +93,12 @@ export default class EthController {
                 value: (new BigNumber(10).pow(18)).toString(),
                 gas: 500 * 1000
             });
+
+            const profileAddress = await UserProvider.createUserProfile(address, {
+                from: process.env.MAIN_ACCOUNT,
+                gas: 5 * 1000 * 1000
+            });
+
             if (process.env.MAIN_ACCOUNT_PASSWORD) {
                 await personal.lockAccount(process.env.MAIN_ACCOUNT);
             }
@@ -99,9 +106,11 @@ export default class EthController {
             await personal.unlockAccount(address, password);
             await personal.lockAccount(address);
 
+
             res.send({
                 status: "success",
                 address: address,
+                profileAddress: profileAddress,
                 password: typeof password !== "undefined"
             });
         } catch (exc) {
