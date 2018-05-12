@@ -78,7 +78,7 @@ export default class ContractsProvider {
 
 
     public static getContractArtifacts(shortName: string): any {
-        let csJsonArtifactsPath = process.env.JSON_ARTIFACTS_PATH + "\\";
+        let csJsonArtifactsPath = process.env.JSON_ARTIFACTS_PATH + "/";
         if (this.cache[shortName]) {
             return this.cache[shortName];
         }
@@ -97,7 +97,7 @@ export default class ContractsProvider {
     private static getContractArtifactsFromPath(csJsonArtifactsPath: string): any {
         if (!fs.existsSync(csJsonArtifactsPath)) {
             console.log(csJsonArtifactsPath);
-            throw new Error("Didn't found contract json artifacts at: ");
+            throw new Error("Didn't found contract json artifacts at: " + csJsonArtifactsPath);
         }
         const csJsonArtifacts = require(csJsonArtifactsPath);
 
@@ -112,6 +112,7 @@ export default class ContractsProvider {
         Contract.setProvider(provider);
         return Contract;
     }
+
     private static getDisplayName(str) {
         // str = str.replace(/([A-Z])/g, ' $1').trim();
         return str.charAt(0).toUpperCase() + str.slice(1);
