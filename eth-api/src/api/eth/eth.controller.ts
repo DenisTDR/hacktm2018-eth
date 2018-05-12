@@ -16,6 +16,7 @@ export default class EthController {
         this.router = Router();
         this.router.post('/createAccount', EthController.createAccount);
         this.router.post('/modifierFunction', EthController.callModifierFunction);
+        this.router.get('/accounts', EthController.getAccounts);
         // this.router.post('/', Auth.isAuthenticated, ThingController.create);
 
         return this.router;
@@ -89,9 +90,24 @@ export default class EthController {
                 password: typeof password !== "undefined"
             });
         } catch (exc) {
-
+            console.error(exc);
             res.status(500).send({
                 status: "error"
+            });
+        }
+    }
+
+    static async getAccounts(req: Request, res: Response, next: NextFunction) {
+        try {
+            const web3 = Web3Factory.getWeb3();
+
+            const accounts = web3.eth.accounts;
+            res.send({result: accounts});
+        }
+        catch (e) {
+            res.status(500).send({
+                message: 'Could not get accounts',
+                err: e
             });
         }
     }
