@@ -8,3 +8,4 @@ bin
 .env
 .env.development
 .idea
+existing-articles.json

@@ -1,6 +1,7 @@
-import {Request, Response, NextFunction, Router} from 'express';
+import {NextFunction, Request, Response, Router} from 'express';
 import ContractsProvider from "../../providers/contracts.provider";
 import Web3Factory from "../../config/web3.factory";
+import StorageProvider from "../../providers/storage.provider";
 
 const BigNumber = require('bignumber.js');
 
@@ -14,6 +15,9 @@ export default class ArticleController {
         this.router = Router();
         this.router.post('/new', ArticleController.new);
         this.router.post('/vote', ArticleController.vote);
+        this.router.get('/voteOf', ArticleController.voteOf);
+        this.router.get('/state', ArticleController.state);
+        this.router.get('/userArticles', ArticleController.userArticles);
 
         return this.router;
     }
@@ -35,24 +39,28 @@ export default class ArticleController {
         };
 
         const contract = await ContractsProvider.getContractArtifacts("article");
-        const web3 = Web3Factory.getWeb3();
-        const accounts = web3.eth.accounts;
+        // const web3 = Web3Factory.getWeb3();
+        // const accounts = web3.eth.accounts;
 
         try {
             if (process.env.MAIN_ACCOUNT_PASSWORD) {
-
                 const personal = Web3Factory.getPersonal();
                 await personal.unlockAccount(process.env.MAIN_ACCOUNT, process.env.MAIN_ACCOUNT_PASSWORD);
             }
-            const contractInstance = await contract.new(model.hash, {from: process.env.MAIN_ACCOUNT, gas: 500 * 1000});
+            const contractInstance = await contract.new(model.hash, {
+                from: process.env.MAIN_ACCOUNT,
+                gas: 3 * 1000 * 1000
+            });
 
             model.ethAddress = contractInstance.address;
 
+            new StorageProvider().addOne(contractInstance.address);
+
             res.send({
-                message: 'Created!',
+                message: 'success',
                 model: model
             });
-        }catch (exc) {
+        } catch (exc) {
 
             res.status(500).send({
                 message: 'error',
@@ -63,25 +71,148 @@ export default class ArticleController {
 
     public static async vote(req: Request, res: Response, next: NextFunction) {
 
-        console.log(req.body);
-
         const model = {
             articleAddress: req.body.articleAddress,
             vote: req.body.vote,
-            from: req.body.address,
+            weight: req.body.weight,
+            from: req.body.voterAddress,
             password: req.body.password
         };
 
-        if(!model.articleAddress || !model.vote || !model.from || !model.password) {
+        if (!model.articleAddress || typeof model.vote !== "boolean" || !model.from || !model.password || !model.weight) {
             res.status(400).send({
-               status: "error",
-               reason: "invalid request object. example: {articleAddress: string, vote: boolean, address: string, password: string}"
+                status: "error",
+                reason: "invalid request object. example: {articleAddress: string, vote: boolean, voterAddress: string, password: string, weight: number}"
             });
             return;
         }
 
+
+        try {
+            const contract = await ContractsProvider.getContractArtifacts("article").at(model.articleAddress);
+            const personal = Web3Factory.getPersonal();
+
+            const alreadyVoted = await contract.didVote.call(model.from);
+            if (alreadyVoted) {
+                res.status(400).send({
+                    status: "error",
+                    reason: "You already voted for this article"
+                });
+                return;
+            }
+
+            await personal.unlockAccount(model.from, model.password);
+            const weightNumber = Math.round(model.weight * 1000);
+            await contract.doVote(model.vote, weightNumber, {from: model.from, gas: 1000 * 1000});
+
+            res.send({
+                status: "success"
+            });
+        }
+        catch (e) {
+            res.status(400).send({
+                status: "error",
+                reason: e.message
+            });
+        }
+    }
+
+    public static async voteOf(req: Request, res: Response, next: NextFunction) {
+
+
+        const model = {articleAddress: req.query.articleAddress, voterAddress: req.query.voterAddress};
+
+        if (!model.articleAddress || !model.voterAddress) {
+            res.status(400).send({
+                status: "error",
+                reason: "No articleAddress or voterAddress provided!"
+            });
+            return;
+        }
+
+        const contract = await ContractsProvider.getContractArtifacts("article").at(model.articleAddress);
+        const didVote = await contract.didVote.call(model.voterAddress);
+        if (!didVote) {
+            res.send({
+                status: "success",
+                didVote: false
+            });
+        }
+        else {
+            const vote = await contract.voteOf.call(model.voterAddress);
+            let weight = await contract.weights.call(model.voterAddress);
+            weight = parseInt(weight) / 1000;
+            res.send({
+                status: "success",
+                didVote: true,
+                vote: vote,
+                weight: weight
+            });
+        }
+    }
+
+
+    public static async state(req: Request, res: Response, next: NextFunction) {
+        const model = {articleAddress: req.query.articleAddress};
+
+        const contract = await ContractsProvider.getContractArtifacts("article").at(model.articleAddress);
+
+        const state = {
+            up: await contract.up.call(),
+            upW: parseInt(await contract.upW.call()) / 1000,
+            down: await contract.down.call(),
+            downW: parseInt(await contract.downW.call()) / 1000
+        };
+
         res.send({
-            status: "success"
+            status: "success",
+            state: state
         });
+    }
+
+    public static async userArticles(req: Request, res: Response, next: NextFunction) {
+        const model = {userAddress: req.query.userAddress};
+
+        if (!model.userAddress) {
+            res.status(400).send({
+                status: "error",
+                reason: "No userAddress provided!"
+            });
+            return;
+        }
+
+        const contract = await ContractsProvider.getContractArtifacts("article");
+
+        const articleAddresses = new StorageProvider().getAll();
+        const result = [];
+        for (let articleAddress of articleAddresses) {
+            try {
+                const contractInstance = await contract.at(articleAddress);
+
+                const userDidVote = await contractInstance.didVote.call(model.userAddress);
+
+                if (!userDidVote) {
+                    continue;
+                }
+                const obj: any = {};
+                obj.state = {
+                    up: await contractInstance.up.call(),
+                    upW: parseInt(await contractInstance.upW.call()) / 1000,
+                    down: await contractInstance.down.call(),
+                    downW: parseInt(await contractInstance.downW.call()) / 1000
+                };
+                obj.userVote = await contractInstance.voteOf.call(model.userAddress);
+                obj.userVoteWeight = parseInt(await contractInstance.weights.call(model.userAddress)) / 1000;
+                obj.articleAddress = articleAddress;
+                result.push(obj);
+            }
+            catch (e) {
+                console.error(e.message);
+            }
+        }
+        res.send({
+            status: "success",
+            result: result
+        })
     }
 }
