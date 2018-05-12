@@ -2,6 +2,7 @@ import {NextFunction, Request, Response, Router} from 'express';
 import ContractsProvider from "../../providers/contracts.provider";
 import Web3Factory from "../../config/web3.factory";
 import StorageProvider from "../../providers/storage.provider";
+import EthProvider from "../../providers/eth.provider";
 
 const BigNumber = require('bignumber.js');
 
@@ -30,13 +31,11 @@ export default class ArticleController {
      * @param {*} next
      */
     public static async new(req: Request, res: Response, next: NextFunction) {
-
-        console.log(req.body);
-
         const model = {
             hash: req.body.hash,
             ethAddress: ""
         };
+        console.log("creating article with hash: " + model.hash);
 
         const contract = await ContractsProvider.getContractArtifacts("article");
         // const web3 = Web3Factory.getWeb3();
@@ -60,17 +59,18 @@ export default class ArticleController {
                 message: 'success',
                 model: model
             });
+            console.log("created article with hash: " + model.hash);
         } catch (exc) {
 
             res.status(500).send({
                 message: 'error',
                 model: exc.message
             });
+            console.log("error creating article with hash: " + model.hash)
         }
     }
 
     public static async vote(req: Request, res: Response, next: NextFunction) {
-
         const model = {
             articleAddress: req.body.articleAddress,
             vote: req.body.vote,
@@ -78,6 +78,8 @@ export default class ArticleController {
             from: req.body.voterAddress,
             password: req.body.password
         };
+        console.log("voting: " + JSON.stringify(model));
+
 
         if (!model.articleAddress || typeof model.vote !== "boolean" || !model.from || !model.password || !model.weight) {
             res.status(400).send({
@@ -89,6 +91,16 @@ export default class ArticleController {
 
 
         try {
+
+            if (!EthProvider.isAddress(model.articleAddress)) {
+                res.status(400).send({
+                    status: "error",
+                    state: "chestia asta '" + model.articleAddress + "' nu e o adresă"
+                });
+                console.log("mi-a dat chestia asta '" + model.articleAddress + "' nesimțitu'");
+                return;
+            }
+
             const contract = await ContractsProvider.getContractArtifacts("article").at(model.articleAddress);
             const personal = Web3Factory.getPersonal();
 
@@ -130,6 +142,15 @@ export default class ArticleController {
             return;
         }
 
+        if (!EthProvider.isAddress(model.articleAddress)) {
+            res.status(400).send({
+                status: "error",
+                state: "chestia asta '" + model.articleAddress + "' nu e o adresă"
+            });
+            console.log("mi-a dat chestia asta '" + model.articleAddress + "' nesimțitu'");
+            return;
+        }
+
         const contract = await ContractsProvider.getContractArtifacts("article").at(model.articleAddress);
         const didVote = await contract.didVote.call(model.voterAddress);
         if (!didVote) {
@@ -154,6 +175,15 @@ export default class ArticleController {
 
     public static async state(req: Request, res: Response, next: NextFunction) {
         const model = {articleAddress: req.query.articleAddress};
+
+        if (!EthProvider.isAddress(model.articleAddress)) {
+            res.status(400).send({
+                status: "error",
+                state: "chestia asta '" + model.articleAddress + "' nu e o adresă"
+            });
+            console.log("mi-a dat chestia asta '" + model.articleAddress + "' nesimțitu'");
+            return;
+        }
 
         const contract = await ContractsProvider.getContractArtifacts("article").at(model.articleAddress);
 
@@ -189,14 +219,14 @@ export default class ArticleController {
             try {
                 let contractInstance;
                 try {
-                    console.log("loading article contract: " + articleAddress);
                     contractInstance = await new Promise((resolve, reject) => {
-                        contract.at(articleAddress).then(instance => {
-                            resolve(instance)
-                        })
+                        contract.at(articleAddress)
+                            .then(instance => {
+                                resolve(instance)
+                            })
                             .catch(err => {
                                 reject(err);
-                            })
+                            });
                     });
                 } catch (e) {
                     console.error("error: " + e.message + " ->" + articleAddress);
