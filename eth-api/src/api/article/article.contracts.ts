@@ -190,7 +190,14 @@ export default class ArticleController {
                 let contractInstance;
                 try {
                     console.log("loading article contract: " + articleAddress);
-                    contractInstance = await contract.at(articleAddress)
+                    contractInstance = await new Promise((resolve, reject) => {
+                        contract.at(articleAddress).then(instance => {
+                            resolve(instance)
+                        })
+                            .catch(err => {
+                                reject(err);
+                            })
+                    });
                 } catch (e) {
                     console.error("error: " + e.message + " ->" + articleAddress);
                     continue;
