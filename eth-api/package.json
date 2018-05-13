@@ -10,7 +10,7 @@
         "watch-ts": "tsc-watch -w -p src --onSuccess \"npm run start-dev\"",
         "start": "node dist/server.js",
         "start-dev": "nodemon dist/server.js",
-        "start-dev-2": "ts-node-dev --respawn --type-check src\\server.ts"
+        "start-dev-2": "ts-node-dev --respawn --type-check src/server.ts"
     },
     "keywords": [
         "Node",
@@ -49,6 +49,7 @@
         "nodemon": "^1.17.4",
         "ts-node-dev": "^1.0.0-pre.21",
         "tsc-watch": "^1.0.21",
-        "typescript": "^2.8.3"
+        "typescript": "^2.8.3",
+        "websocket"
     }
 }
