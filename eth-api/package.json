@@ -50,6 +50,6 @@
         "ts-node-dev": "^1.0.0-pre.21",
         "tsc-watch": "^1.0.21",
         "typescript": "^2.8.3",
-        "websocket"
+        "websocket": "^1.0.26"
     }
 }
