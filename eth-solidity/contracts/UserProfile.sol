@@ -12,7 +12,7 @@ contract UserProfile is Ownable {
 
     constructor(address _userAddress) public{
         userAddress = _userAddress;
-        reputation = 1;
+        reputation = 1000;
     }
 
     function setArticleAsUsed(address articleAddress) public onlyOwner {

@@ -93,6 +93,14 @@ export default class ContractsProvider {
         return Contract;
     }
 
+    public static getContractArtifactsAt(shortName: string, address: string): any {
+        return new Promise((resolve, reject) => {
+            ContractsProvider.getContractArtifacts(shortName).at(address).then(instance => {
+                resolve(instance);
+            }).catch(err => reject(err));
+        });
+    }
+
 
     private static getContractArtifactsFromPath(csJsonArtifactsPath: string): any {
         if (!fs.existsSync(csJsonArtifactsPath)) {

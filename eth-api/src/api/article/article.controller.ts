@@ -71,24 +71,22 @@ export default class ArticleController {
     }
 
     public static async vote(req: Request, res: Response, next: NextFunction) {
-        const model = {
+        const model: any = {
             articleAddress: req.body.articleAddress,
             vote: req.body.vote,
-            weight: req.body.weight,
             from: req.body.voterAddress,
             password: req.body.password
         };
         console.log("voting: " + JSON.stringify(model));
 
 
-        if (!model.articleAddress || typeof model.vote !== "boolean" || !model.from || !model.password || !model.weight) {
+        if (!model.articleAddress || typeof model.vote !== "boolean" || !model.from || !model.password) {
             res.status(400).send({
                 status: "error",
                 reason: "invalid request object. example: {articleAddress: string, vote: boolean, voterAddress: string, password: string, weight: number}"
             });
             return;
         }
-
 
         try {
 
@@ -101,7 +99,16 @@ export default class ArticleController {
                 return;
             }
 
-            const contract = await ContractsProvider.getContractArtifacts("article").at(model.articleAddress);
+            const contract: any = await new Promise((resolve, reject) => {
+                ContractsProvider.getContractArtifacts("article")
+                    .at(model.articleAddress)
+                    .then(instance => {
+                        resolve(instance);
+                    })
+                    .catch(err => {
+                        reject(err);
+                    });
+            });
             const personal = Web3Factory.getPersonal();
 
             const alreadyVoted = await contract.didVote.call(model.from);
@@ -112,7 +119,7 @@ export default class ArticleController {
                 });
                 return;
             }
-
+            model.weight = 1;
             await personal.unlockAccount(model.from, model.password);
             const weightNumber = Math.round(model.weight * 1000);
             await contract.doVote(model.vote, weightNumber, {from: model.from, gas: 1000 * 1000});
@@ -229,7 +236,7 @@ export default class ArticleController {
                             });
                     });
                 } catch (e) {
-                    console.error("error: " + e.message + " ->" + articleAddress);
+                    // console.error("+++error: " + e.message + " ->" + articleAddress);
                     continue;
                 }
                 const userDidVote = await contractInstance.didVote.call(model.userAddress);

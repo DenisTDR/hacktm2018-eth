@@ -34,6 +34,7 @@
         "mongoose": "^5.0.10",
         "morgan": "^1.9.0",
         "path": "^0.12.7",
+        "request-promise": "^4.2.2",
         "truffle-contract": "^3.0.4",
         "web3-eth-personal": "^1.0.0-beta.34"
     },
