@@ -70,7 +70,7 @@ export default class UserController {
 
             res.send({
                 status: "success",
-                reputation: parseFloat(reputation) / 1000
+                reputation: parseFloat(reputation.toString()) / 1000
             });
         } catch (e) {
             res.status(400).send({
