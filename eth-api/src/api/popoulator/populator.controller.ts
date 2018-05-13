@@ -16,7 +16,7 @@ export default class PopulatorController {
 
     public static async populate(req: Request, res: Response, next: NextFunction) {
         const url = "http://localhost:9040/eth";
-        let accounts: { account: string, profile: string }[] = [];
+        let accounts: { account: string, profileAddress: string }[] = [];
         let articles: string[] = [];
         const accountNumber = 15;
         const articlesNumber = 5;
