@@ -3,6 +3,7 @@ import ContractsProvider from "../../providers/contracts.provider";
 import Web3Factory from "../../config/web3.factory";
 import StorageProvider from "../../providers/storage.provider";
 import EthProvider from "../../providers/eth.provider";
+import UserProvider from "../../providers/user.provider";
 
 const BigNumber = require('bignumber.js');
 
@@ -75,15 +76,16 @@ export default class ArticleController {
             articleAddress: req.body.articleAddress,
             vote: req.body.vote,
             from: req.body.voterAddress,
-            password: req.body.password
+            password: req.body.password,
+            profileAddress: req.body.profileAddress
         };
         console.log("voting: " + JSON.stringify(model));
 
 
-        if (!model.articleAddress || typeof model.vote !== "boolean" || !model.from || !model.password) {
+        if (!model.articleAddress || typeof model.vote !== "boolean" || !model.from || !model.password || !model.profileAddress) {
             res.status(400).send({
                 status: "error",
-                reason: "invalid request object. example: {articleAddress: string, vote: boolean, voterAddress: string, password: string, weight: number}"
+                reason: "invalid request object. example: {articleAddress: string, vote: boolean, voterAddress: string, profileAddress: string, password: string, weight: number}"
             });
             return;
         }
@@ -119,7 +121,8 @@ export default class ArticleController {
                 });
                 return;
             }
-            model.weight = 1;
+            model.weight = await UserProvider.calcReputation(model.from, model.profileAddress);
+            console.log("model.weight=" + model.weight);
             await personal.unlockAccount(model.from, model.password);
             const weightNumber = Math.round(model.weight * 1000);
             await contract.doVote(model.vote, weightNumber, {from: model.from, gas: 1000 * 1000});

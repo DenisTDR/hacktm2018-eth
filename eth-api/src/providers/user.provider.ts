@@ -81,9 +81,10 @@ export default class UserProvider {
             if (!didVote) {
                 continue;
             }
-            const alreadyUsed = await userProfileInstance.usedArticles.call(accountAddress);
+            const alreadyUsed = await userProfileInstance.usedArticles.call(articleAddress);
 
             if (alreadyUsed) {
+                // console.log("found something already used");
                 continue;
             }
 
@@ -91,14 +92,17 @@ export default class UserProvider {
             const upW = parseInt(await articleInstance.upW.call()) / 1000;
             const downW = parseInt(await articleInstance.downW.call()) / 1000;
             const totalW = upW + downW;
+            if(totalW < 10) {
+                continue;
+            }
             const proc = (upW / totalW) * 100;
-            console.log("proc = " + proc);
+            // console.log("proc = " + proc);
             if (proc < 60 && proc > 40) {
                 continue;
             }
-            console.log("vote = " + vote);
-            console.log("upW = " + upW);
-            console.log("downW = " + downW);
+            // console.log("vote = " + vote);
+            // console.log("upW = " + upW);
+            // console.log("downW = " + downW);
             if (upW > downW && vote || upW < downW && !vote) {
                 inc++;
             }
@@ -124,13 +128,12 @@ export default class UserProvider {
             }
         }
         reputation = Math.round(reputation * 1000);
-        console.log("initialReputation=" + initialReputation);
-        console.log("reputation=" + reputation);
+        // console.log("initialReputation=" + initialReputation);
+        // console.log("reputation=" + reputation);
         if (taken.length) {
-            // await userProfileInstance.setReputation(reputation, {from: process.env.MAIN_ACCOUNT, gas: 500 * 1000});
+            await userProfileInstance.setReputation(reputation, {from: process.env.MAIN_ACCOUNT, gas: 500 * 1000});
             for (let artAddr of taken) {
                 await userProfileInstance.setArticleAsUsed(artAddr, {from: process.env.MAIN_ACCOUNT, gas: 500 * 1000});
-                console.log(artAddr);
             }
         }
 

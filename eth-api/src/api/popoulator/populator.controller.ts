@@ -30,7 +30,7 @@ export default class PopulatorController {
                 },
                 json: true
             });
-            accounts.push({account: result.address, profile: result.profileAddress});
+            accounts.push({account: result.address, profileAddress: result.profileAddress});
         }
 
 
@@ -59,7 +59,7 @@ export default class PopulatorController {
                         body: {
                             articleAddress: article,
                             voterAddress: account.account,
-                            profileAddress: account.profile,
+                            profileAddress: account.profileAddress,
                             vote: Math.random() > 0.5,
                             password: "parola01"
                         },

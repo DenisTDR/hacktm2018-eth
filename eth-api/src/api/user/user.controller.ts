@@ -19,6 +19,7 @@ export default class UserController {
         this.router.post('/setArticleAsUsed', UserController.setArticleAsUsed);
         this.router.get('/getReputation', UserController.getReputation);
         this.router.post('/calcReputation', UserController.calcReputation);
+        this.router.post('/test', UserController.syncTestF);
         // this.router.post('/modifierFunction', EthController.callModifierFunction);
         // this.router.get('/accounts', EthController.getAccounts);
         // this.router.post('/', Auth.isAuthenticated, ThingController.create);
@@ -83,8 +84,8 @@ export default class UserController {
     static async calcReputation(req: Request, res: Response, next: NextFunction) {
 
 
-        const model = {address: req.body.accountAddress, profile: req.body.userProfileAddress};
-        if (!model.address || !model.profile) {
+        const model = {address: req.body.accountAddress, profileAddress: req.body.userProfileAddress};
+        if (!model.address || !model.profileAddress) {
             res.status(400).send({
                 status: "error",
                 reason: "invalid request. Example: {accountAddress: string, userProfileAddress: string}"
@@ -92,18 +93,32 @@ export default class UserController {
             return;
         }
 
-        try{
-            const reputation = await UserProvider.calcReputation(model.address, model.profile);
+        try {
+            const reputation = await UserProvider.calcReputation(model.address, model.profileAddress);
             res.send({
                 status: "success",
                 reputation: reputation
             });
-        }catch (e) {
+        } catch (e) {
+            console.error(e);
+
             res.status(400).send({
                 status: "error",
                 reason: e.message
             });
         }
+    }
 
+
+    static async syncTestF(req: Request, res: Response, next: NextFunction) {
+        const userProfileAddress = "0x1b46d590e552875996506ab2ab2b1cd750725c6d";
+        const userProfileInstance = await ContractsProvider.getContractArtifactsAt("userprofile", userProfileAddress);
+        const articles = ["0x5820dc90cae9671aa4d0d74c07c0d8469d85d415", "0xb0f75e73991de62fa1303791a3c98c5b7e4cda25", "0x3675a0240b033c3fae90299f033c457197bced47"];
+        for (let article of articles) {
+            const alreadyUsed = await userProfileInstance.usedArticles.call(article);
+            console.log("alreadyUsed=" + alreadyUsed);
+            console.log("article=" + article);
+        }
+        res.send();
     }
 }
